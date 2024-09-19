@@ -1,0 +1,7 @@
+client/node_modules
+
+flutterapp/.dart_tool
+flutterapp/build
+
+server/node_modules
+server/.env
