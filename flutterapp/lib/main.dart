@@ -32,6 +32,20 @@ class _WebSocketDemoState extends State<WebSocketDemo> {
   List<String> _messages = [];
 
   @override
+  void dispose() {
+    _channel.sink.close();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage() {
+    if (_controller.text.isNotEmpty) {
+      _channel.sink.add(_controller.text); // Send message to the WebSocket
+      _controller.clear(); // Clear the input field
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -47,13 +61,7 @@ class _WebSocketDemoState extends State<WebSocketDemo> {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {
-                if (_controller.text.isNotEmpty) {
-                  _channel.sink.add(_controller.text);
-                  _controller.clear();
-                  _channel.sink.close();
-                }
-              },
+              onPressed: _sendMessage, // Call the send message function
               child: const Text('Send Message'),
             ),
             const SizedBox(height: 20),
@@ -62,9 +70,10 @@ class _WebSocketDemoState extends State<WebSocketDemo> {
                 stream: _channel.stream,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    print(snapshot.data.toString());
-                    //HERE WE ARE CONVERTING THE DATA TO STRING HERE THE DATA IS PASSING IN THE FORM OF BYTES
-                    String message = String.fromCharCodes(snapshot.data);
+                    // Convert data to string if it's in bytes
+                    String message = snapshot.data is List<int>
+                        ? String.fromCharCodes(snapshot.data)
+                        : snapshot.data.toString();
                     _messages.add(message);
                   }
                   return ListView.builder(
@@ -82,12 +91,5 @@ class _WebSocketDemoState extends State<WebSocketDemo> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _channel.sink.close();
-    _controller.dispose();
-    super.dispose();
   }
 }
